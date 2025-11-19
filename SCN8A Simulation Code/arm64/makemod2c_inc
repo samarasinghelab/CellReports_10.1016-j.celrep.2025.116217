@@ -1,0 +1,24 @@
+./ECellOlufsen.c: ../ECellOlufsen.mod
+	@printf " -> $(C_GREEN)NMODL$(C_RESET) $<\\n"
+	(cd "..";  MODLUNIT=$(NRNUNITS) $(NOCMODL) "ECellOlufsen.mod" -o "/Users/danieltoker/Downloads/CODE_FIGURES_3_AND_4/arm64")
+
+./ECellOlufsen.o: ./ECellOlufsen.c
+	@printf " -> $(C_GREEN)Compiling$(C_RESET) $<\\n"
+	$(COMPILE) -I".." $(INCLUDES) -fPIC -c $< -o $@
+
+./IcellWangBuzsaki.c: ../IcellWangBuzsaki.mod
+	@printf " -> $(C_GREEN)NMODL$(C_RESET) $<\\n"
+	(cd "..";  MODLUNIT=$(NRNUNITS) $(NOCMODL) "IcellWangBuzsaki.mod" -o "/Users/danieltoker/Downloads/CODE_FIGURES_3_AND_4/arm64")
+
+./IcellWangBuzsaki.o: ./IcellWangBuzsaki.c
+	@printf " -> $(C_GREEN)Compiling$(C_RESET) $<\\n"
+	$(COMPILE) -I".." $(INCLUDES) -fPIC -c $< -o $@
+
+./OCellTort.c: ../OCellTort.mod
+	@printf " -> $(C_GREEN)NMODL$(C_RESET) $<\\n"
+	(cd "..";  MODLUNIT=$(NRNUNITS) $(NOCMODL) "OCellTort.mod" -o "/Users/danieltoker/Downloads/CODE_FIGURES_3_AND_4/arm64")
+
+./OCellTort.o: ./OCellTort.c
+	@printf " -> $(C_GREEN)Compiling$(C_RESET) $<\\n"
+	$(COMPILE) -I".." $(INCLUDES) -fPIC -c $< -o $@
+

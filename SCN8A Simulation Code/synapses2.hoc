@@ -1,0 +1,568 @@
+proc initsyn(){
+objectvar NCoosyn[nocells][nocells][nmodules]
+objectvar NCiisyn[nicells][nicells][nmodules]
+objectvar NCiosyn[nicells][nocells][nmodules]
+objectvar NCoisyn[nocells][nicells][nmodules]
+
+objectvar NCoesyn[nocells][necells][nmodules],NCoesynghost[nocells][necells][nmodules]
+objectvar NCiesyn[nicells][necells][nmodules],NCiesynghost[nicells][necells][nmodules]
+objectvar NCeosyn[necells][nocells][nmodules]
+objectvar NCeisyn[necells][nicells][nmodules]
+objectvar NCeesyn[necells][necells][nmodules]
+
+objectvar NCoisynmodul[nocells][nicells][nmodules]
+objectvar NCiisynmodul[nicells][nicells][nmodules]
+objectvar NCiosynmodul[nicells][nocells][nmodules]
+objectvar NCiesynmodul[nicells][necells][nmodules],NCiesynmodulghost[nicells][necells][nmodules]
+objectvar NCoesynmodul[nocells][necells][nmodules][nmodules],NCoesynmodulghost[nocells][necells][nmodules][nmodules]
+}
+
+initsyn()
+
+
+proc distinctdrivesfunc()	{
+
+	for(i=0; i<necells; i=i+1)	{
+	
+					{	ecell[i][0].soma {drive_Ecellchann = EdriveMod1} }
+if (nmodules>1)		{	ecell[i][1].soma {drive_Ecellchann = EdriveMod2} }
+if (nmodules>2)		{	ecell[i][2].soma {drive_Ecellchann = EdriveMod3} }
+if (nmodules>3)		{	ecell[i][3].soma {drive_Ecellchann = EdriveMod4} }
+if (nmodules>4)		{	ecell[i][4].soma {drive_Ecellchann = EdriveMod5} }
+if (nmodules>5)		{	ecell[i][5].soma {drive_Ecellchann = EdriveMod6} }
+										
+								}
+								}
+
+							
+
+proc makeallsyn(){
+initsyn()
+
+Ighost = ghost // synapse to ghost cell
+Oghost = ghost //
+
+makeOOsyn()
+makeOIsyn()
+makeIOsyn()
+makeIIsyn()
+makeEOsyn()
+makeEIsyn()
+makeOEsyn()
+makeIEsyn()
+makeEEsyn()
+if (nmodules>1){
+makeOEsynmodul()
+}
+}
+
+proc makeallsyn2(){
+makeOOsyn2()
+makeOIsyn2()
+makeIOsyn2()
+makeIIsyn2()
+makeEOsyn2()
+makeEIsyn2()
+makeOEsyn2()
+makeIEsyn2()
+makeEEsyn2()
+ if (nmodules>1){
+ makeOEsynmodul2()
+ }
+}
+
+
+// SYNAPSES WITHIN A MODULE  
+
+within=0 // delay within module
+
+proc makeOOsyn2()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nocells; i=i+1) 	{	
+  			for(j=0; j<nocells; j=j+1) 	{
+				NCoosyn[i][j][k].active(1)
+					if(i==j)				{
+						NCoosyn[i][j][k].active(0)
+											}
+										}
+									}
+								}
+					}
+
+
+proc makeOOsyn()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nocells; i=i+1)	{	
+  			for(j=0; j<nocells; j=j+1) 	{
+				oosyn[i][j][k] = new Exp2Syn()
+				olmcell[j][k].soma oosyn[i][j][k].loc(0.5)
+	 			oosyn[i][j][k].e = EGABA
+	 			oosyn[i][j][k].tau1 = 1/alpha_OLMsyn
+	 			oosyn[i][j][k].tau2 = 1/beta_OLMsyn
+	 			olmcell[i][k].soma NCoosyn[i][j][k] = new NetCon(&v(0.5),oosyn[i][j][k])
+				NCoosyn[i][j][k].weight = oostrength.x[k]/nocells
+				NCoosyn[i][j][k].delay = odelay*within
+				NCoosyn[i][j][k].active(0)
+										}
+									}
+								}
+					}	
+
+proc makeOIsyn2()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nocells; i=i+1) 	{	
+  			for(j=0; j<nicells; j=j+1) 	{
+ 				NCoisyn[i][j][k].active(1)
+										}
+									}
+								}
+					}
+			
+proc makeOIsyn()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nocells; i=i+1)	{	
+  			for(j=0; j<nicells; j=j+1) 	{
+				oisyn[i][j][k] = new Exp2Syn()
+				icell[j][k].soma oisyn[i][j][k].loc(0.5)
+	 			oisyn[i][j][k].e = EGABA
+	 			oisyn[i][j][k].tau1 = 1/alpha_OLMsyn
+	 			oisyn[i][j][k].tau2 = 1/beta_OLMsyn
+	 			olmcell[i][k].soma NCoisyn[i][j][k] = new NetCon(&v(0.5),oisyn[i][j][k])
+				NCoisyn[i][j][k].delay = odelay*within
+				NCoisyn[i][j][k].weight = oistrength.x[k]/nocells
+				NCoisyn[i][j][k].active(0)
+  								}
+  				timeospikes[i][k]= new Vector()
+				NCoisyn[i][0][k].record(timeospikes[i][k])
+							}
+				
+						}
+			}
+
+
+proc makeOEsyn2()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nocells; i=i+1) 	{	
+  			for(j=0; j<necells; j=j+1) 	{
+				NCoesyn[i][j][k].active(1)
+					if (ghost>1 && k<4)		{
+					//	NCoesynghost[i][j][k].active(1)
+						NCoesynghost[i][0][k].active(1)
+											}
+										}
+									}
+								}
+					}
+
+proc makeOEsyn()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nocells; i=i+1)	{	
+  			for(j=0; j<necells; j=j+1) 	{
+				oesyn[i][j][k] = new Exp2Syn()
+				ecell[j][k].soma oesyn[i][j][k].loc(0.5)
+	 			oesyn[i][j][k].e = EGABA
+	 			oesyn[i][j][k].tau1 = 1/alpha_OLMsyn //
+	 			oesyn[i][j][k].tau2 = 1/beta_OLMsyn //
+	 			olmcell[i][k].soma NCoesyn[i][j][k] = new NetCon(&v(0.5),oesyn[i][j][k])
+				NCoesyn[i][j][k].weight = oestrength.x[k]/(nocells)
+				NCoesyn[i][j][k].delay = odelay*within
+				NCoesyn[i][j][k].active(0)
+					if (ghost>1 && k<4)		{					
+						oesynghost[i][0][k] = new Exp2Syn()
+						ecellghost[0][k].soma oesynghost[i][0][k].loc(0.5)
+						oesynghost[i][0][k].e = EGABA
+						oesynghost[i][0][k].tau1 = 1/alpha_OLMsyn //
+						oesynghost[i][0][k].tau2 = 1/beta_OLMsyn  //
+						olmcell[i][k].soma NCoesynghost[i][0][k] = new NetCon(&v(0.5),oesynghost[i][0][k])
+						NCoesynghost[i][0][k].weight = oestrength.x[k]/(nocells)
+						NCoesynghost[i][0][k].delay = odelay*within
+						NCoesynghost[i][0][k].active(0)
+						
+											}
+										}
+									}
+								}
+					}
+
+
+proc makeIIsyn2()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nicells; i=i+1) 	{	
+  			for(j=0; j<nicells; j=j+1) 	{
+			NCiisyn[i][j][k].active(1)
+										}
+									}
+								}
+					}
+
+proc makeIIsyn()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nicells; i=i+1)	{	
+  			for(j=0; j<nicells; j=j+1) 	{
+				iisyn[i][j][k] = new Exp2Syn()
+				icell[j][k].soma iisyn[i][j][k].loc(0.5)
+	 			iisyn[i][j][k].e = EGABA
+	 			iisyn[i][j][k].tau1 = 1/alpha_Isyn
+	 			iisyn[i][j][k].tau2 = 1/beta_Isyn
+	 			icell[i][k].soma NCiisyn[i][j][k] = new NetCon(&v(0.5),iisyn[i][j][k])
+				NCiisyn[i][j][k].weight = iistrength.x[k]/nicells
+				NCiisyn[i][j][k].delay = idelay*within
+				NCiisyn[i][j][k].active(0)
+										}
+				timeispikes[i][k]= new Vector()
+				NCiisyn[i][0][k].record(timeispikes[i][k])
+									}
+				
+								}
+					}
+
+
+proc makeIOsyn2()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nicells; i=i+1) 	{	
+  			for(j=0; j<nocells; j=j+1) 	{
+				NCiosyn[i][j][k].active(1)
+										}
+									}
+								}
+					}
+
+proc makeIOsyn()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nicells; i=i+1)	{	
+  			for(j=0; j<nocells; j=j+1) 	{
+				iosyn[i][j][k] = new Exp2Syn()
+				olmcell[j][k].soma iosyn[i][j][k].loc(0.5)
+	 			iosyn[i][j][k].e = EGABA
+	 			iosyn[i][j][k].tau1 = 1/alpha_Isyn
+	 			iosyn[i][j][k].tau2 = 1/beta_Isyn
+	 			icell[i][k].soma NCiosyn[i][j][k] = new NetCon(&v(0.5),iosyn[i][j][k])
+				NCiosyn[i][j][k].weight = iostrength.x[k]/nicells
+				NCiosyn[i][j][k].delay = idelay*within
+				NCiosyn[i][j][k].active(0)
+										}
+									}
+								}
+					}
+
+proc makeIEsyn2()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nicells; i=i+1) 	{	
+  			for(j=0; j<necells; j=j+1) 	{
+				NCiesyn[i][j][k].active(1)
+					if (ghost>1 && k<4)		{
+					//	NCiesynghost[i][j][k].active(1)
+						NCiesynghost[i][0][k].active(1)
+											}
+										}
+									}
+								}
+					}
+
+
+proc makeIEsyn()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<nicells; i=i+1)	{	
+  			for(j=0; j<necells; j=j+1) 	{
+				iesyn[i][j][k] = new Exp2Syn()
+				ecell[j][k].soma iesyn[i][j][k].loc(0.5)
+	 			iesyn[i][j][k].e = EGABA
+	 			iesyn[i][j][k].tau1 = 1/alpha_Isyn
+	 			iesyn[i][j][k].tau2 = 1/beta_Isyn
+	 			icell[i][k].soma NCiesyn[i][j][k] = new NetCon(&v(0.5),iesyn[i][j][k])
+  				NCiesyn[i][j][k].weight = iestrength.x[k]/nicells
+				NCiesyn[i][j][k].delay = idelay*within
+				NCiesyn[i][j][k].active(0)
+	
+	
+					if (ghost>1 && k<4)			{
+					//	iesynghost[i][j][k] = new Exp2Syn()
+					//	ecellghost[j][k].soma iesynghost[i][j][k].loc(0.5)
+					//	iesynghost[i][j][k].e = EGABA
+					//	iesynghost[i][j][k].tau1 = 1/alpha_Isyn
+					//	iesynghost[i][j][k].tau2 = 1/beta_Isyn
+					//	icell[i][k].soma NCiesynghost[i][j][k] = new NetCon(&v(0.5),iesynghost[i][j][k])
+					//	NCiesynghost[i][j][k].weight = iestrength/nicells
+					//	NCiesynghost[i][j][k].delay = idelay*within
+					//	NCiesynghost[i][j][k].active(0)
+						
+						iesynghost[i][0][k] = new Exp2Syn()
+						ecellghost[0][k].soma iesynghost[i][0][k].loc(0.5)
+						iesynghost[i][0][k].e = EGABA
+						iesynghost[i][0][k].tau1 = 1/alpha_Isyn
+						iesynghost[i][0][k].tau2 = 1/beta_Isyn
+						icell[i][k].soma NCiesynghost[i][0][k] = new NetCon(&v(0.5),iesynghost[i][0][k])
+						NCiesynghost[i][0][k].weight = iestrength.x[k]/nicells
+						NCiesynghost[i][0][k].delay = idelay*within
+						NCiesynghost[i][0][k].active(0)
+					
+											}
+										}
+									}
+								}
+					}
+			
+			
+			
+proc makeEOsyn2()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<necells; i=i+1) 	{	
+  			for(j=0; j<nocells; j=j+1) 	{
+				NCeosyn[i][j][k].active(1)
+										}
+									}
+								}
+					}
+
+
+proc makeEOsyn()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<necells; i=i+1)	{	
+  			for(j=0; j<nocells; j=j+1) 	{
+				eosyn[i][j][k] = new Exp2Syn()
+				olmcell[j][k].soma eosyn[i][j][k].loc(0.5)
+	 			eosyn[i][j][k].e = 0
+	 			eosyn[i][j][k].tau1 = 1/alpha_Esyn
+	 			eosyn[i][j][k].tau2 = 1/beta_Esyn
+	 			ecell[i][k].soma NCeosyn[i][j][k] = new NetCon(&v(0.5),eosyn[i][j][k])
+				NCeosyn[i][j][k].weight = eostrength.x[k]/necells
+				NCeosyn[i][j][k].delay = edelay*within
+				NCeosyn[i][j][k].active(0)
+										}
+				timeespikes[i][k]= new Vector()
+				NCeosyn[i][0][k].record(timeespikes[i][k])
+									}
+				
+								}
+					}
+
+
+proc makeEIsyn2()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<necells; i=i+1) 	{	
+  			for(j=0; j<nicells; j=j+1) 	{
+ 				NCeisyn[i][j][k].active(1)
+										}
+									}
+								}
+					}
+
+proc makeEIsyn()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<necells; i=i+1)	{	
+  			for(j=0; j<nicells; j=j+1) 	{
+				eisyn[i][j][k] = new Exp2Syn()
+				icell[j][k].soma eisyn[i][j][k].loc(0.5)
+	 			eisyn[i][j][k].e = 0
+	 			eisyn[i][j][k].tau1 = 1/alpha_Esyn
+	 			eisyn[i][j][k].tau2 = 1/beta_Esyn
+	 			ecell[i][k].soma NCeisyn[i][j][k] = new NetCon(&v(0.5),eisyn[i][j][k])
+				NCeisyn[i][j][k].weight = eistrength.x[k]/necells
+				NCeisyn[i][j][k].delay = edelay*within
+				NCeisyn[i][j][k].active(0)
+										}
+									}
+								}
+					}
+
+
+
+proc makeEEsyn2()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<necells; i=i+1) 	{	
+  			for(j=0; j<necells; j=j+1) 	{
+ 				NCeesyn[i][j][k].active(1)
+					if(i==j)				{
+						NCeesyn[i][j][k].active(0)
+											}							
+										}
+									}
+								}
+					}
+
+
+proc makeEEsyn()	{
+	for(k=0; k<nmodules; k=k+1)	{
+		for(i=0; i<necells; i=i+1)	{	
+  			for(j=0; j<necells; j=j+1) 	{
+				eesyn[i][j][k] = new Exp2Syn()
+				ecell[j][k].soma eesyn[i][j][k].loc(0.5)
+	 			eesyn[i][j][k].e = 0
+	 			eesyn[i][j][k].tau1 = 1/alpha_Esyn
+	 			eesyn[i][j][k].tau2 = 1/beta_Esyn
+	 			ecell[i][k].soma NCeesyn[i][j][k] = new NetCon(&v(0.5),eesyn[i][j][k])
+				NCeesyn[i][j][k].weight = eestrength.x[k]/necells
+				NCeesyn[i][j][k].delay = edelay*within
+				NCeesyn[i][j][k].active(0)
+										}
+									}
+								}
+					}
+
+
+// SYNAPSES AMONG MODULES  
+
+proc makeOEsynmodul2()	{
+		for(k=0; k<nmodules; k=k+1)	{
+			for (q=0;q<nmodules;q=q+1)	{
+				if (q == k) { } else		{
+					for(i=0; i<nocells; i=i+1) 	{	
+						for(j=0; j<necells; j=j+1) 	{
+							NCoesynmodul[i][j][q][k].active(1)
+								if (Oghost>1 && k<4)			{
+									//	NCoesynmodulghost[i][j][q][k].active(1)
+									NCoesynmodulghost[i][0][q][k].active(1)
+														}
+													}
+												}
+											}
+										}		
+									}
+						}
+
+proc makeOEsynmodul()	{
+			for (k=0; k<nmodules; k=k+1)	{
+				for (q=0; q<nmodules; q=q+1)	{
+					if (q == k) { } else			{
+						
+			   for(i=0; i<nocells; i=i+1)				{	
+  				for(j=0; j<necells; j=j+1)					{
+					oesynmodul[i][j][q][k] = new Exp2Syn()
+					ecell[j][k].soma oesynmodul[i][j][q][k].loc(0.5)
+ 					oesynmodul[i][j][q][k].e = EGABA
+					oesynmodul[i][j][q][k].tau1 = 1/alpha_OLMsyn
+	 				oesynmodul[i][j][q][k].tau2 = 1/beta_OLMsyn
+					olmcell[i][q].soma NCoesynmodul[i][j][q][k] = new NetCon(&v(0.5),oesynmodul[i][j][q][k])
+					NCoesynmodul[i][j][q][k].delay = odelay
+ 					NCoesynmodul[i][j][q][k].weight = oestrengthmodul.x[q]/(nocells)
+					NCoesynmodul[i][j][q][k].active(0)
+					
+					if (Oghost>1 && k<4)								{
+							oesynmodulghost[i][0][q][k] = new Exp2Syn()
+							ecellghost[0][k].soma oesynmodulghost[i][0][q][k].loc(0.5)
+							oesynmodulghost[i][0][q][k].e = EGABA
+							oesynmodulghost[i][0][q][k].tau1 = 1/alpha_OLMsyn
+							oesynmodulghost[i][0][q][k].tau2 = 1/beta_OLMsyn
+							olmcell[i][q].soma NCoesynmodulghost[i][0][q][k] = new NetCon(&v(0.5),oesynmodulghost[i][0][q][k])
+							NCoesynmodulghost[i][0][q][k].delay = odelay
+							NCoesynmodulghost[i][0][q][k].weight = oestrengthmodul.x[q]/(nocells)
+							NCoesynmodulghost[i][0][q][k].active(0)
+																}
+															}
+														}
+						
+													}
+												}
+											}
+							}
+						
+
+
+proc zero()	{
+
+for j=0,9{
+oistrength.x[j] = 0.0000
+iostrength.x[j] = 0.0000
+iistrength.x[j] = 0.0000
+oostrength.x[j] = 0.0000
+
+iestrength.x[j] = 0.00
+oestrength.x[j] = 0.000
+eistrength.x[j] = 0.0000
+eostrength.x[j] = 0.0000
+eestrength.x[j] = 0.0000
+
+oistrengthmodul.x[j] = 0.0000
+iostrengthmodul.x[j] = 0.000
+iistrengthmodul.x[j] = 0.0000
+oostrengthmodul.x[j] = 0.0000
+iestrengthmodul.x[j] = 0.00
+oestrengthmodul.x[j] = 0.000
+eistrengthmodul.x[j] = 0.0000
+eostrengthmodul.x[j] = 0.0000
+eestrengthmodul.x[j] = 0.0000
+}			
+}
+
+
+proc iiwithin(){
+for i=0,9 {
+iistrength.x[i] = $1
+}
+}
+
+proc oiwithin(){
+for i=0,9 {
+oistrength.x[i] = $1
+}
+}
+
+proc eiwithin(){
+for i=0,9 {
+eistrength.x[i] = $1
+}
+}
+
+
+proc eowithin(){
+for i=0,9 {
+eostrength.x[i] = $1
+}
+}
+
+
+proc oewithin(){
+for i=0,9 {
+oestrength.x[i] = $1
+}
+}
+
+
+proc oeamong(){
+for i=0,9 {  
+oestrengthmodul.x[i] = $1
+}
+}
+proc control(){
+zero()
+
+nocells = vara
+nicells = varb
+necells = varc
+nmodules = 1
+distinctdrives= 1
+oeamong(0)
+odelay=0
+
+Idrive=varh
+Odrive=vari
+Edrive=varj
+WhiteNoise=vark
+varr4=varl
+varr3=varm
+
+Volts=varn
+
+Vg_nacurrentolmolm = varo
+Vg_napcurrentolm = varp
+Vg_kcurrentolm = varq
+Vgna_icellchann = var2r
+Vgnap_icellchann = vars
+Vgk_icellchann = vart
+Vgna_ecellchann = varu
+Vgnap_ecellchann = varv
+Vgk_ecellchann = varw
+
+for(k=0; k<nmodules; k=k+1)    {
+oostrength.x[k] = varx
+iistrength.x[k] = vary
+oistrength.x[k] = varz
+iostrength.x[k] = var1a
+iestrength.x[k] = var1b
+oestrength.x[k] = var1c
+eistrength.x[k] = var1d
+eostrength.x[k] = var1e
+eestrength.x[k] = var1f
+}
+}
+

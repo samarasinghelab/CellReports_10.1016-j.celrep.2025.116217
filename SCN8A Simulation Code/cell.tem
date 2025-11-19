@@ -1,0 +1,47 @@
+
+begintemplate ICell
+public soma
+create soma
+
+proc init() {
+soma {
+	L = 10
+	diam = 10/PI
+	cm = 1
+   
+	insert Icellchann
+	}
+}
+endtemplate ICell
+
+
+begintemplate ECell
+public soma
+create soma
+
+proc init() {
+soma {
+	L = 10
+	diam = 10/PI
+	cm = 1
+   
+	insert Ecellchann
+	}
+}
+endtemplate ECell
+
+
+begintemplate OCell
+public soma
+create soma
+
+proc init() {
+soma {
+	L = 10
+	diam = 10/PI
+   	cm = 1.3
+   	
+	insert Ocellchann
+	}
+}
+endtemplate OCell

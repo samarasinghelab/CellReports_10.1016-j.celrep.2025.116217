@@ -1,0 +1,15 @@
+
+begintemplate ECell
+public soma
+create soma
+
+proc init() {
+soma {
+	L = 10
+	diam = 10/PI
+	cm = 1
+   
+	insert Ecellchann
+	}
+}
+endtemplate ECell

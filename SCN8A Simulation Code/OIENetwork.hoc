@@ -1,0 +1,635 @@
+// Programmed by Adriano Tort, CBD, BU, 2008
+
+load_file("nrngui.hoc") // make graphical interface tools available to this program
+load_file("cell.tem")
+
+panelson=3
+ghost=2
+distinctdrives=1
+noise=1
+WhiteNoise=0
+Volts=-70
+
+nocells = 2
+nicells = 2
+necells = 1
+nmodules = 4
+snum = 0
+
+identical_random=1
+
+v_init=-66.869219
+
+tstop=3000
+syntime=0
+marksize = 6
+
+alpha_Esyn=1/0.1
+beta_Esyn=1/3
+
+alpha_Isyn=1/0.3
+beta_Isyn=1/9
+
+alpha_OLMsyn=1/0.2
+beta_OLMsyn=1/20
+
+Idrive=0.0008
+Odrive=-0.003
+Edrive=0.001
+
+EdriveMod1=0.0015
+EdriveMod2=0.0015
+EdriveMod3=0.0015
+EdriveMod4=0.002
+EdriveMod5=0.002
+EdriveMod6=0.002
+
+
+objref r,r2,r3,r4,r5,r6
+
+
+r = new Random()
+r2 = new Random()
+r3 = new Random()
+r4 = new Random()
+r5 = new Random()
+r6 = new Random()
+
+
+EGABA = -80
+
+varr2 = 0.000
+varr3 = 0.000
+varr4 = 0.000
+
+DT = 1
+seeplot = 2
+
+objref saving
+
+odelay = 0
+idelay = 0
+edelay = 0
+
+Vg_leak = 0.00005
+Ve_leak = -70
+Vg_nacurrentolmolm = 0.03
+Vg_napcurrentolm = .0000005
+Ve_nacurrentolmolm = 90
+Vg_kcurrentolm = 0.023
+Ve_kcurrentolm = -100
+Vg_acurrentolm = 0.016
+Ve_acurrentolm = -90
+Vg_hcurrentolm = 0.012
+Ve_hcurrentolm = -32.9
+Vv50_hcurrentolm = -84
+
+Vgl_icellchann = 0.0001
+Vel_icellchann = -65
+Vgna_icellchann = 0.035
+Vgnap_icellchann = .0000005
+Vena_icellchann = 55
+Vgk_icellchann = 0.009
+Vek_icellchann = -90
+
+Vgna_ecellchann = 0.1
+Vgnap_ecellchann = .0000005
+Vgk_ecellchann = 0.080
+
+
+objectvar oistrength,iostrength,iistrength,oostrength,iestrength,oestrength,eistrength,eostrength,eestrength
+objectvar oistrengthmodul,iostrengthmodul,iistrengthmodul,oostrengthmodul,iestrengthmodul,oestrengthmodul,eistrengthmodul,eostrengthmodul,eestrengthmodul
+objectvar Vdrive_Edrive, Vdrive_icellchann, Vdrive_leak
+
+
+proc createobjects(){
+
+r2.normal(0,WhiteNoise)
+r4.uniform(0,syntime)
+r5.normal(0,varr3)
+r6.normal(0,varr4)
+
+
+if(identical_random==1){
+r2.MCellRan4(1)
+idum=r2.seq()
+r2.seq(idum)
+
+
+r4.MCellRan4(1)
+idum=r4.seq()
+r4.seq(idum)
+
+
+r5.MCellRan4(1)
+idum=r5.seq()
+r5.seq(idum)
+
+
+r6.MCellRan4(1)
+idum=r6.seq()
+r6.seq(idum)
+}
+
+objectvar timeispikes[nicells][nmodules], timeespikes[necells][nmodules],timeospikes[nocells][nmodules]
+
+// CELLS
+
+objectvar olmcell[nocells][nmodules]
+objectvar icell[nicells][nmodules]
+objectvar ecell[necells][nmodules],ecellghost[necells][nmodules]
+
+// SYNAPSES
+
+objectvar oosyn[nocells][nocells][nmodules]
+objectvar iisyn[nicells][nicells][nmodules]
+objectvar iosyn[nicells][nocells][nmodules]
+objectvar oisyn[nocells][nicells][nmodules]
+
+objectvar oesyn[nocells][necells][nmodules],oesynghost[nocells][necells][nmodules]
+objectvar iesyn[nicells][necells][nmodules],iesynghost[nicells][necells][nmodules]
+objectvar eosyn[necells][nocells][nmodules]
+objectvar eisyn[necells][nicells][nmodules]
+objectvar eesyn[necells][necells][nmodules]
+
+objectvar oisynmodul[nocells][nicells][nmodules]
+objectvar iisynmodul[nicells][nicells][nmodules]
+objectvar iosynmodul[nicells][nocells][nmodules]
+objectvar iesynmodul[nicells][necells][nmodules],iesynmodulghost[nicells][necells][nmodules]
+objectvar oesynmodul[nocells][necells][nmodules][nmodules],oesynmodulghost[nocells][necells][nmodules][nmodules]
+
+objectvar oapc[nocells][nmodules],iapc[nicells][nmodules],eapc[necells][nmodules]
+objectvar ostim[nocells][nmodules],istim[nicells][nmodules],estim[necells][nmodules],estimghost[necells][nmodules]
+objref tvec, evecghost[necells][nmodules]
+
+}
+
+createobjects()
+
+
+proc makeconductances(){
+
+objectvar oistrength,iostrength,iistrength,oostrength,iestrength,oestrength,eistrength,eostrength,eestrength
+objectvar oistrengthmodul,iostrengthmodul,iistrengthmodul,oostrengthmodul,iestrengthmodul,oestrengthmodul,eistrengthmodul,eostrengthmodul,eestrengthmodul
+objectvar Vdrive_Edrive, Vdrive_icellchann, Vdrive_leak
+
+oistrength = new Vector($1)
+oestrength = new Vector($1)
+oostrength = new Vector($1)
+
+iostrength = new Vector($1)
+iestrength = new Vector($1)
+iistrength = new Vector($1)
+
+eistrength = new Vector($1)
+eostrength = new Vector($1)
+eestrength = new Vector($1)
+
+oistrengthmodul = new Vector($1)
+oestrengthmodul = new Vector($1)
+oostrengthmodul = new Vector($1)
+
+iostrengthmodul = new Vector($1)
+iestrengthmodul = new Vector($1)
+iistrengthmodul = new Vector($1)
+
+eistrengthmodul = new Vector($1)
+eostrengthmodul = new Vector($1)
+eestrengthmodul = new Vector($1)
+
+
+Vdrive_Edrive = new Vector($1)
+Vdrive_icellchann = new Vector($1)
+Vdrive_leak = new Vector($1)
+
+}
+
+
+makeconductances(10)
+
+proc nocellsinit(){
+
+createobjects()
+
+// CREATING CELLS
+
+// initial voltage values uniformed distributed in (A,B):
+A=-80
+B=-80
+
+
+for(i=0; i<nocells; i=i+1)	{
+	for(j=0; j<nmodules; j=j+1)	{	
+		olmcell[i][j] = new OCell()
+		olmcell[i][j].soma oapc[i][j] = new APCount(0.5)
+		olmcell[i][j].soma			{
+			gl_Ocellchann = Vg_leak
+			el_Ocellchann = Ve_leak
+			gna_Ocellchann = Vg_nacurrentolmolm 
+			gnap_Ocellchann = Vg_napcurrentolm
+			ena_Ocellchann = Ve_nacurrentolmolm 
+			gk_Ocellchann = Vg_kcurrentolm
+			ek_Ocellchann = Ve_kcurrentolm
+			ga_Ocellchann = Vg_acurrentolm 
+			ea_Ocellchann = Ve_acurrentolm 
+			gh_Ocellchann = Vg_hcurrentolm
+			eh_Ocellchann = Ve_hcurrentolm
+			v50_Ocellchann = Vv50_hcurrentolm
+			// drive_Ocellchann = r.uniform(omin,omax)
+			// drive_Ocellchann = r.normal(omin,omax^2)	
+			drive_Ocellchann= Odrive
+
+			v = Volts 
+									}
+		r6.play(&olmcell[i][j].soma.drivenoise_Ocellchann)
+								}
+							}
+ 
+for(i=0; i<nicells; i=i+1)	{
+	for(j=0; j<nmodules; j=j+1)	{	
+		icell[i][j] = new ICell()
+		icell[i][j].soma iapc[i][j] = new APCount(0.5)
+		icell[i][j].soma			{
+			gl_Icellchann = Vgl_icellchann
+			el_Icellchann = Vel_icellchann
+			gna_Icellchann = Vgna_icellchann 
+			gnap_Icellchann = Vgnap_icellchann 
+			ena_Icellchann = Vena_icellchann
+			gk_Icellchann =  Vgk_icellchann
+			ek_Icellchann = Vek_icellchann
+			drive_Icellchann = Idrive
+			v = Volts
+									}
+		r5.play(&icell[i][j].soma.drivenoise_Icellchann)
+								}
+							}
+
+  for(i=0; i<necells; i=i+1)	{
+	for(j=0; j<nmodules; j=j+1)	{	
+		ecell[i][j] = new ECell()	
+		ecell[i][j].soma eapc[i][j] = new APCount(0.5)
+		ecell[i][j].soma.v = Volts
+		ecell[i][j].soma			{
+			gna_Ecellchann = Vgna_ecellchann
+			gnap_Ecellchann = Vgnap_ecellchann 
+			gk_Ecellchann =  Vgk_ecellchann
+			drive_Ecellchann = Edrive
+									}
+	r2.play(&ecell[i][j].soma.drivenoise_Ecellchann)
+
+		
+			if (ghost>1)				{
+				ecellghost[0][j] = new ECell()	
+				ecellghost[0][j].soma.v = ecell[i][j].soma.v 
+							ecellghost[0][j].soma {
+							drive_Ecellchann = 0
+										}
+	r2.play(&ecellghost[0][j].soma.drivenoise_Ecellchann)
+										}
+								}
+							}
+							
+
+
+// SETTING INITIAL PHASE SHIFT  (ie, random initial conditions in each trial, in addition to random intital v)
+
+for(i=0; i<nocells; i=i+1)	{
+	for(j=0; j<nmodules; j=j+1)	{		
+		ostim[i][j] = new IClamp()
+		olmcell[i][j].soma ostim[i][j].loc(0.5)
+		ostim[i][j].del = 0
+		ostim[i][j].dur = 0
+		ostim[i][j].amp =  0
+								}
+							}
+
+objectvar istim[nicells][nmodules] 
+for(i=0; i<nicells; i=i+1)	{
+	for(j=0; j<nmodules; j=j+1)	{		
+		istim[i][j] = new IClamp()
+		icell[i][j].soma istim[i][j].loc(0.5)
+		istim[i][j].del = 0
+		istim[i][j].dur = 0
+		istim[i][j].amp = 0
+								}
+							}
+
+for(i=0; i<necells; i=i+1) {	
+	for(j=0; j<nmodules; j=j+1)	{	
+
+		estim[i][j] = new IClamp()
+		ecell[i][j].soma estim[i][j].loc(0.5)
+		estim[i][j].del = 0
+		estim[i][j].dur = 0
+		estim[i][j].amp = 0
+
+		if (ghost>10 && j<4)			{
+				estimghost[0][j] = new IClamp()
+				ecellghost[0][j].soma estimghost[0][j].loc(0.5)
+				estimghost[0][j].del = 0
+				estimghost[0][j].dur = estim[0][j].dur
+				estimghost[0][j].amp = estim[0][j].amp
+									}
+								}
+							}
+
+// GRAPHICS SECTION
+
+access ecell[0][0].soma // by some reason it is only possible to record "t" when a section is accessed
+
+tvec = new Vector()
+tvec.record(&t,DT)
+
+
+		for(j=0; j<nmodules; j=j+1)		{
+		if (ghost>1 && j<4)	{
+			evecghost[0][j] = new Vector()
+			evecghost[0][j].record(&ecellghost[0][j].soma.v(0.5),DT)
+										}
+				}
+
+
+if (seeplot>1){preprasterplot()} 
+ 
+ 
+}
+
+
+
+// PANELS
+
+proc createsynapsepanel() {
+xpanel("Synapses properties")
+xvalue("alpha E","alpha_Esyn")
+xvalue("alpha I","alpha_Isyn")
+xvalue("alpha O","alpha_OLMsyn")
+xvalue("beta E","beta_Esyn")
+xvalue("beta I","beta_Isyn")
+xvalue("beta O","beta_OLMsyn")
+xpanel()
+}
+
+objref hbox4
+
+proc createmainpanel()	{
+
+ hbox4 = new HBox()
+ hbox4.intercept(1)	
+ 
+ 
+xpanel("General")
+xvalue("Session Number", "snum")
+xvalue("Identical random noise?", "identical_random")
+xvalue("N modules","nmodules")
+xvalue("N O-cells","nocells")
+xvalue("N I-cells","nicells")
+xvalue("N E-cells","necells")
+xlabel("") 
+//xvalue("A")
+//xvalue("B")
+//xvalue("EGABA","EGABA")
+xlabel("Cells Drive") 
+xvalue("Edrive")
+xvalue("Odrive")
+xvalue("Idrive")
+xlabel("")
+xlabel("Intrinsic Noise") 
+xvalue("WhiteNoise E Var","WhiteNoise")
+xvalue("WhiteNoise O Var","varr4")
+xvalue("WhiteNoise I Var","varr3")
+xlabel("")
+xlabel("Initial Voltages") 
+xvalue("Volts","Volts")
+xlabel("") 
+xlabel("Axonal Delay Among Modules")
+xvalue("Delay (ms)","odelay")
+xlabel("") 
+xvalue("Synapse Time","syntime")
+xvalue("t","t")
+xvalue("Integration Time","tstop")
+//xlabel("") 
+//xvalue("Raster Marks Size", "marksize")
+
+xpanel()
+
+xpanel("General")
+
+xlabel("") 
+xlabel("Simulation Parameters")
+xbutton("Control","control()")
+xbutton("SCN8A","scn8a()")
+//xbutton("Fig3A","fig3A()")
+//xbutton("Fig3B","fig3B()")
+//xbutton("Fig3C Transversal","fig3CTrans()")
+//xbutton("Fig3C Coronal","fig3CCoron()")
+//xbutton("Fig3C Longitudinal","fig3CLong()")
+
+//xbutton("Fig4B","fig4B()")
+//xbutton("Fig4C","fig4C()")
+//xbutton("Fig4D","fig4D()")
+
+xlabel("") 
+xbutton("Break O->I Connections","oiwithin(0)")
+
+xlabel("") 
+xbutton("Show Synaptic Connections","createconducpanel()")
+
+
+xlabel("") 
+xbutton("Save session","save_session(aaa)")
+xbutton("Run","run()")
+
+run()
+xpanel()
+
+
+
+hbox4.intercept(0)	//all following creations go into the "vbox" box
+hbox4.map("General", 200, 200, 450, 480)	//draw the box and its contents
+
+}
+
+strdef aaa, name,name2
+aaa = "session.ses"
+
+proc createcurrentspanel() {
+xpanel("Currents")
+xlabel("O cells") 
+//xvalue("G Leak","Vg_leak")
+//xvalue("E Leak","Ve_leak")
+xvalue("G Na","Vg_nacurrentolmolm")
+xvalue("G NaP","Vg_napcurrentolm")
+//xvalue("E Na","Ve_nacurrentolmolm")
+xvalue("G K","Vg_kcurrentolm")
+//xvalue("E K","Ve_kcurrentolm")
+//xvalue("G KA","Vg_acurrentolm")
+//xvalue("E KA","Ve_acurrentolm")
+//xvalue("G h","Vg_hcurrentolm")
+//xvalue("E h","Ve_hcurrentolm")
+//xvalue("Ih V50","Vv50_hcurrentolm")
+
+xlabel("I cells") 
+//xvalue("G Leak","Vgl_icellchann")
+//xvalue("E Leak","Vel_icellchann")
+xvalue("G Na","Vgna_icellchann")
+xvalue("G NaP","Vgnap_icellchann")
+//xvalue("E Na","Vena_icellchann")
+xvalue("G K","Vgk_icellchann")
+//xvalue("E K","Vek_icellchann")
+
+xlabel("E cells") 
+xvalue("G Na","Vgna_ecellchann")
+xvalue("G NaP","Vgnap_ecellchann")
+xvalue("G K","Vgk_ecellchann")
+//xvalue("Gh","ghfactor_hcurrent")
+//xvalue("Ga","gafactor_kacurrent")
+xpanel()
+}
+
+objref hbox3
+
+proc multipledrivespanel() {
+
+hbox3 = new HBox()
+hbox3.intercept(1)	
+
+xpanel("Fig 4C Drives")
+xvalue("Edrive Module 1","EdriveMod1")
+xvalue("Edrive Module 2","EdriveMod2")
+xvalue("Edrive Module 3","EdriveMod3")
+xvalue("Edrive Module 4","EdriveMod4")
+//xvalue("EdriveMod5")
+//xvalue("EdriveMod6")
+xvalue("Odrive")
+xvalue("Idrive")
+xpanel()
+hbox3.intercept(0)	
+hbox3.map("Fig 4C Drives", 200, 200, 170, 170)	//draw the box and its contents
+}
+
+objref hbox2
+
+proc createconducpanel() {
+
+hbox2 = new HBox()
+hbox2.intercept(1)	
+ 
+for j=0,nmodules-1{
+sprint(name, "%s%d","Module ",(j+1))
+xpanel(name)
+xlabel(name) // ("Within Module")
+sprint(name, "%s%d%s","oostrength.x[",j,"]")
+xvalue("GOO",name)
+sprint(name, "%s%d%s","iistrength.x[",j,"]")
+xvalue("GII",name)
+sprint(name, "%s%d%s","oistrength.x[",j,"]") 
+xvalue("GOI",name)
+sprint(name, "%s%d%s","iostrength.x[",j,"]") 
+xvalue("GIO",name)
+sprint(name, "%s%d%s","iestrength.x[",j,"]")
+xvalue("GIE",name)
+sprint(name, "%s%d%s","oestrength.x[",j,"]")
+xvalue("GOE",name)
+sprint(name, "%s%d%s","eistrength.x[",j,"]")
+xvalue("GEI",name)
+sprint(name, "%s%d%s","eostrength.x[",j,"]")
+xvalue("GEO",name)
+sprint(name, "%s%d%s","eestrength.x[",j,"]")
+xvalue("GEE",name)
+xlabel("Among Modules")
+sprint(name, "%s%d%s","oestrengthmodul.x[",j,"]")
+xvalue("GOE",name)
+xpanel()
+}
+ hbox2.intercept(0)	
+hbox2.map("Synaptic Connections Strengh", 200, 200, nmodules*170, 310)	//draw the box and its contents
+}
+
+
+proc init() { 
+ 
+finitialize() 
+  /* 
+  if (cvode.active()) { 
+    cvode.re_init() 
+  } else { 
+    fcurrent() 
+  } 
+  frecord_init() 
+  */ 
+}
+
+load_file("synapses.hoc")
+load_file("raster.hoc")
+//load_file("session.ses")
+
+ createmainpanel()
+// createconducpanel()
+createcurrentspanel()
+
+
+// Saving the spike times:
+
+		strdef filename1
+		objref saving
+		saving = new File()
+
+
+proc savespikes(){
+for(k=0; k<nmodules; k=k+1)		{
+		for(i=0; i<nicells; i=i+1)	{
+			objref saving
+			saving = new File()
+			sprint(filename1, "%s%d%s%s%d%d%s","raster/",snum,$s1,"Icell",i, k,".txt")
+			saving.wopen(filename1)
+			timeispikes[i][k].printf(saving)
+			saving.close()
+									}
+							
+							
+		for(i=0; i<necells; i=i+1)	{
+			objref saving
+			saving = new File()
+			sprint(filename1, "%s%d%s%s%d%d%s","raster/",snum,$s1,"Ecell",i, k,".txt")
+			saving.wopen(filename1)
+			timeespikes[i][k].printf(saving)
+			saving.close()
+									}
+							
+							
+		for(i=0; i<nocells; i=i+1)	{
+			objref saving
+			saving = new File()
+			sprint(filename1, "%s%d%s%s%d%d%s","raster/",snum,$s1,"Ocell",i, k,".txt")
+			saving.wopen(filename1)
+			timeospikes[i][k].printf(saving)
+			saving.close()
+									}
+}
+}
+
+// Saving the LFP:
+strdef filename2
+proc saveLFP(){
+objref saving
+saving = new File()
+sprint(filename2, "%s%d%s%s","lfp/",snum,$s1,".txt")
+saving.wopen(filename2)
+evecghost[0][0].printf(saving)
+saving.close()
+}
+
+proc run()	{
+	nocellsinit()
+	makeallsyn()
+	if (distinctdrives > 1){distinctdrivesfunc()}
+	stdinit()
+	continuerun(syntime+odelay)
+	makeallsyn2()
+	continuerun(tstop)
+	savespikes("")
+	saveLFP("")
+		if (seeplot>1)	{showraster()}
+			}
+
+nrnmainmenu()

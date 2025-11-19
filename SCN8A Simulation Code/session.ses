@@ -1,0 +1,188 @@
+objectvar save_window_, rvp_
+objectvar scene_vector_[4]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{pwman_place(0,0,0)}
+{
+ocbox_ = new HBox()
+ocbox_list_.prepend(ocbox_)
+ocbox_.intercept(1)
+}
+{
+xpanel("General", 0)
+snum = 0
+xvalue("Session Number","snum", 0,"", 0, 0 )
+nmodules = 1
+xvalue("N modules","nmodules", 0,"", 0, 0 )
+nocells = 5
+xvalue("N O-cells","nocells", 0,"", 0, 0 )
+nicells = 20
+xvalue("N I-cells","nicells", 0,"", 0, 0 )
+necells = 16
+xvalue("N E-cells","necells", 0,"", 0, 0 )
+xlabel("")
+xlabel("Cells Drive")
+Edrive = 0.0008
+xvalue("Edrive","Edrive", 0,"", 0, 0 )
+Odrive = -0.003
+xvalue("Odrive","Odrive", 0,"", 0, 0 )
+Idrive = 0.0008
+xvalue("Idrive","Idrive", 0,"", 0, 0 )
+xlabel("")
+xlabel("Intrinsic Noise")
+WhiteNoise = 3e-06
+xvalue("WhiteNoise E Var","WhiteNoise", 0,"", 0, 0 )
+varr4 = 3e-06
+xvalue("WhiteNoise O Var","varr4", 0,"", 0, 0 )
+varr3 = 3e-06
+xvalue("WhiteNoise I Var","varr3", 0,"", 0, 0 )
+xlabel("")
+xlabel("Initial Voltages")
+Volts = -70
+xvalue("Volts","Volts", 0,"", 0, 0 )
+xlabel("")
+xlabel("Axonal Delay Among Modules")
+odelay = 0
+xvalue("Delay (ms)","odelay", 0,"", 0, 0 )
+xlabel("")
+syntime = 0
+xvalue("Synapse Time","syntime", 0,"", 0, 0 )
+t = 3000
+xvalue("t","t", 0,"", 0, 0 )
+tstop = 3000
+xvalue("Integration Time","tstop", 0,"", 0, 0 )
+xpanel()
+}
+{
+xpanel("General", 0)
+xlabel("")
+xlabel("Simulation Parameters")
+xbutton("Control","control()")
+xlabel("")
+xbutton("Break O->I Connections","oiwithin(0)")
+xlabel("")
+xbutton("Show Synaptic Connections","createconducpanel()")
+xlabel("")
+xbutton("Save session","save_session(aaa)")
+xbutton("Run","run()")
+xpanel()
+}
+{
+ocbox_ = ocbox_list_.object(0)
+ocbox_.intercept(0)
+ocbox_.map("General", 403, 0, 432.96, 683.52)
+}
+objref ocbox_
+{
+xpanel("Currents", 0)
+xlabel("O cells")
+Vg_nacurrentolmolm = 0.03
+xvalue("G Na","Vg_nacurrentolmolm", 0,"", 0, 0 )
+Vg_napcurrentolm = 5e-10
+xvalue("G NaP","Vg_napcurrentolm", 0,"", 0, 0 )
+Vg_kcurrentolm = 0.023
+xvalue("G K","Vg_kcurrentolm", 0,"", 0, 0 )
+xlabel("I cells")
+Vgna_icellchann = 0.035
+xvalue("G Na","Vgna_icellchann", 0,"", 0, 0 )
+Vgnap_icellchann = 5e-10
+xvalue("G NaP","Vgnap_icellchann", 0,"", 0, 0 )
+Vgk_icellchann = 0.009
+xvalue("G K","Vgk_icellchann", 0,"", 0, 0 )
+xlabel("E cells")
+Vgna_ecellchann = 0.1
+xvalue("G Na","Vgna_ecellchann", 0,"", 0, 0 )
+Vgnap_ecellchann = 5e-10
+xvalue("G NaP","Vgnap_ecellchann", 0,"", 0, 0 )
+Vgk_ecellchann = 0.08
+xvalue("G K","Vgk_ecellchann", 0,"", 0, 0 )
+xpanel(42,53)
+}
+{
+ocbox_ = new HBox()
+ocbox_list_.prepend(ocbox_)
+ocbox_.intercept(1)
+}
+{
+xpanel("Module 1", 0)
+xlabel("Module 1")
+oostrength.x[0] = 0
+xvalue("GOO","oostrength.x[0]", 0,"", 0, 0 )
+iistrength.x[0] = 0.0001
+xvalue("GII","iistrength.x[0]", 0,"", 0, 0 )
+oistrength.x[0] = 0.0002
+xvalue("GOI","oistrength.x[0]", 0,"", 0, 0 )
+iostrength.x[0] = 0.0005
+xvalue("GIO","iostrength.x[0]", 0,"", 0, 0 )
+iestrength.x[0] = 3e-05
+xvalue("GIE","iestrength.x[0]", 0,"", 0, 0 )
+oestrength.x[0] = 0.00015
+xvalue("GOE","oestrength.x[0]", 0,"", 0, 0 )
+eistrength.x[0] = 9e-05
+xvalue("GEI","eistrength.x[0]", 0,"", 0, 0 )
+eostrength.x[0] = 1e-05
+xvalue("GEO","eostrength.x[0]", 0,"", 0, 0 )
+eestrength.x[0] = 5e-05
+xvalue("GEE","eestrength.x[0]", 0,"", 0, 0 )
+xlabel("Among Modules")
+oestrengthmodul.x[0] = 0
+xvalue("GOE","oestrengthmodul.x[0]", 0,"", 0, 0 )
+xpanel()
+}
+{
+ocbox_ = ocbox_list_.object(0)
+ocbox_.intercept(0)
+ocbox_.map("Synaptic Connections Strengh", 200, 200, 169.92, 310.08)
+}
+objref ocbox_
+{
+ocbox_ = new HBox()
+ocbox_list_.prepend(ocbox_)
+ocbox_.intercept(1)
+}
+{
+ocbox_ = new VBox()
+ocbox_list_.prepend(ocbox_)
+ocbox_.intercept(1)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,3000,-6,4)
+scene_vector_[3] = save_window_
+{save_window_.view(0, -6, 3000, 10, 200, 200, 490.56, 131.909)}
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,3000,4.76837e-07,42)
+scene_vector_[2] = save_window_
+{save_window_.view(0, 4.76837e-07, 3000, 42, 200, 200, 490.56, 329.531)}
+}
+{
+ocbox_ = ocbox_list_.object(0)
+ocbox_.intercept(0)
+ocbox_.map()
+}
+objref ocbox_
+{
+ocbox_ = new VBox()
+ocbox_list_.prepend(ocbox_)
+ocbox_.intercept(1)
+}
+save_window_ = scene_vector_[3]
+{save_window_.view(1000, -6, 2000, 10, 200, 200, 490.56, 131.909)}
+save_window_ = scene_vector_[2]
+{save_window_.view(1000, 4.76837e-07, 2000, 42, 200, 200, 490.56, 329.531)}
+{
+ocbox_ = ocbox_list_.object(0)
+ocbox_.intercept(0)
+ocbox_.map()
+}
+objref ocbox_
+{
+ocbox_ = ocbox_list_.object(0)
+ocbox_.intercept(0)
+ocbox_.map("Simulation Results", 200, 200, 1000.32, 500.16)
+}
+objref ocbox_
+objectvar scene_vector_[1]
+{doNotify()}

@@ -1,0 +1,104 @@
+objref vec[nmodules], vec2[nmodules], vec3[nmodules], spikes[nmodules], spikes2[nmodules], spikes3[nmodules]
+objref graster, glfp, lfp, vbox, vbox2, hbox,lfpvector
+
+brusher=4
+
+graster = new Graph(0)
+proc preprasterplot() {
+
+objref vec[nmodules], vec2[nmodules], vec3[nmodules], spikes[nmodules], spikes2[nmodules], spikes3[nmodules],temporary
+
+for j=0,nmodules-1{
+spikes[j] = new List()
+spikes2[j] = new List()
+spikes3[j] = new List()
+
+for i = 0,nicells-1 {
+vec[j] = new Vector()
+iapc[i][j].record(vec[j])
+spikes[j].append(vec[j])
+}
+for i = 0,nocells-1{
+vec2[j] = new Vector()
+oapc[i][j].record(vec2[j])
+spikes2[j].append(vec2[j])
+}
+for i = 0,necells-1{
+vec3[j] = new Vector()
+eapc[i][j].record(vec3[j])
+spikes3[j].append(vec3[j])
+}
+}
+objref vec[nmodules], vec2[nmodules], vec3[nmodules]
+
+}
+
+objref spikey[nmodules], spikey2[nmodules],spikey3[nmodules]
+
+proc showraster(){
+
+graster = new Graph(0) 
+graster.erase_all()
+
+
+objref spikey[nmodules], spikey2[nmodules],spikey3[nmodules]
+for j=0,nmodules-1{
+for i = 0,nicells-1 {
+spikey[j] = new Vector()
+spikey[j] = spikes[j].object(i).c //creates a vector of size as the i-th vector in the list
+spikey[j].fill(j*(nicells+nocells+necells)+i+1) // fill all entries with the number i+1
+spikey[j].mark(graster, spikes[j].object(i), "|", marksize, 2, brusher)
+}
+for i = 0,nocells-1 {
+spikey2[j] = new Vector()
+spikey2[j] = spikes2[j].object(i).c //creates a vector of size as the i-th vector in the list
+spikey2[j].fill(j*(nicells+nocells+necells)+nicells+i+1) // fill all entries with the number i+1
+spikey2[j].mark(graster, spikes2[j].object(i), "|", marksize, 3, brusher)
+}
+for i = 0,necells-1 {
+spikey3[j] = new Vector()
+spikey3[j] = spikes3[j].object(i).c //creates a vector of size as the i-th vector in the list
+spikey3[j].fill(j*(nicells+nocells+necells)+nicells+nocells+i+1) // fill all entries with the number i+1
+spikey3[j].mark(graster, spikes3[j].object(i), "|", marksize, 1, brusher)
+}
+}
+
+objref spikey[nmodules], spikey2[nmodules],spikey3[nmodules]
+
+
+if (ghost>1)	{
+glfp = new Graph(0) 
+lfpvector = new Vector()
+lfpvector = evecghost[0][0].add(-evecghost[0][0].mean())
+lfpvector.plot(glfp)									
+				}
+				
+ hbox = new HBox()
+ hbox.intercept(1)	
+ 
+vbox = new VBox()
+vbox.intercept(1)	//all following creations go into the "vbox" box
+glfp.view(0,-6, t, 10, 300,100, 1000, 200)
+//glfp.view(0,lfpvector.min()-2, t, 10, 300,100, 1000, 200)
+//xpanel("")
+// xbutton("Run LFP", "glfp.size(t-1000,t,0,10) for i=0,lfpvector.size()-1 { evecghost[0][0].rotate(-1) glfp.flush() doNotify()}")
+//xpanel()
+graster.view(0, 0, t, nmodules*(nocells+nicells+necells+1), 300, 300, 1000, 500)
+vbox.intercept(0)	//ends intercept mode
+vbox.map("Simulation Results", 200, 200, 1000, 500)	//draw the box and its contents
+
+
+vbox2 = new VBox()
+vbox2.intercept(1)	//all following creations go into the "vbox" box
+glfp.view(t-2000,-6, 2000, 10, 300,100, 1000, 200)
+// glfp.view(t-2000,lfpvector.min()-2, 2000, 10, 300,100, 1000, 200)
+graster.view(t-2000, 0, 2000, nmodules*(nocells+nicells+necells+1), 300, 300, 1000, 500)
+vbox2.intercept(0)	//ends intercept mode
+vbox2.map("Simulation Results", 200, 200, 1000, 500)	//draw the box and its contents
+
+hbox.intercept(0)	//all following creations go into the "vbox" box
+hbox.map("Simulation Results", 200, 200, 1000, 500)	//draw the box and its contents
+
+}
+
+
