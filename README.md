@@ -1,6 +1,6 @@
 # Research Code & Data Repository
 
-This repository contains the source code, simulation scripts, and data analysis tools associated with research publications by Toker et al. The codebase is organized by project folder.
+This repository contains the source code, simulation scripts, and data analysis tools associated with research publications by McCrimmon and Toker et al. The codebase is organized by project folder.
 
 ## Repository Structure
 
@@ -27,30 +27,19 @@ This folder contains MATLAB scripts used to analyze Local Field Potentials (LFP)
 
 -----
 
-## 2\. Consciousness & Criticality Metrics
+## 2\. SCN8A Simulation Code (Assembloid Models)
 
-**Folder:** `consciousness_criticality/`
+**Folder:** `SCN8A Simulation Code/`
 
-This code implements the dynamical systems methods described in **Toker et al, "Consciousness is supported by near-critical slow cortical electrodynamics" (PNAS, 2022)**.
+Code relating to the modeling network dysfunction associated with SCN8A using underlying NEURON package.
 
 ### Description
 
-This directory contains scripts for quantifying dynamical complexity and the proximity to edge-of-chaos criticality.
+This directory contains **NEURON** (`.hoc`, `.mod`) and **MATLAB** (`.m`) scripts for simulating neural network activity.
 
-  * **`criticality.m`:** Time-series estimate of proximity to edge-of-chaos criticality.
-  * **`chaos_test.m`:** The modified 0-1 chaos test.
-  * **`stochastic_test.m`:** Modified stochasticity test.
-  * **`fJLZC.m`:** Lempel-Ziv complexity calculation.
-  * **`select_low_pass_freq.m`:** Helper for selecting filter cutoffs.
-
-### Reference
-
-> Toker, D., et al. (2022). Consciousness is supported by near-critical slow cortical electrodynamics. *Proceedings of the National Academy of Sciences*.
-
-### External Links
-
-  * **Original Repository (Figshare):** [View on Figshare](https://figshare.com/articles/software/Consciousness_is_supported_by_near-critical_cortical_electrodynamics/12949355)
-  * **Alternative GitHub:** [Consciousness-is-supported-by-near-critical-slow-cortical-electrodynamics](https://www.google.com/search?q=https://github.com/danieltoker1/Consciousness-is-supported-by-near-critical-slow-cortical-electrodynamics)
+  * **Mechanism files:** `IcellWangBuzsaki.mod`, `ecellolufsen_inap_inactivation.mod`
+  * **Network setup:** `OIENetwork2.hoc`, `synapses.hoc`
+  * **Execution:** `run_simulations.m`
 
 -----
 
@@ -75,19 +64,32 @@ The algorithm utilizes surrogate testing, de-noising, and the modified 0-1 test 
 
 -----
 
-## 4\. SCN8A Simulation Code (Assembloid Models)
+## 4\. Consciousness & Criticality Metrics
 
-**Folder:** `SCN8A Simulation Code/`
+**Folder:** `consciousness_criticality/`
 
-Code relating to the modeling of cortical versus hippocampal network dysfunction in human brain assembloid models of epilepsy.
+This code implements the dynamical systems methods described in **Toker et al, "Consciousness is supported by near-critical slow cortical electrodynamics" (PNAS, 2022)** some of which are used here.
 
 ### Description
 
-This directory contains **NEURON** (`.hoc`, `.mod`) and **MATLAB** (`.m`) scripts for simulating neural network activity.
+This directory contains scripts for quantifying dynamical complexity and the proximity to edge-of-chaos criticality.
 
-  * **Mechanism files:** `IcellWangBuzsaki.mod`, `ecellolufsen_inap_inactivation.mod`
-  * **Network setup:** `OIENetwork2.hoc`, `synapses.hoc`
-  * **Execution:** `run_simulations.m`
+  * **`criticality.m`:** Time-series estimate of proximity to edge-of-chaos criticality.
+  * **`chaos_test.m`:** The modified 0-1 chaos test.
+  * **`stochastic_test.m`:** Modified stochasticity test.
+  * **`fJLZC.m`:** Lempel-Ziv complexity calculation.
+  * **`select_low_pass_freq.m`:** Helper for selecting filter cutoffs.
+
+### Reference
+
+> Toker, D., et al. (2022). Consciousness is supported by near-critical slow cortical electrodynamics. *Proceedings of the National Academy of Sciences*.
+
+### External Links
+
+  * **Original Repository (Figshare):** [View on Figshare](https://figshare.com/articles/software/Consciousness_is_supported_by_near-critical_cortical_electrodynamics/12949355)
+  * **Alternative GitHub:** [Consciousness-is-supported-by-near-critical-slow-cortical-electrodynamics](https://www.google.com/search?q=https://github.com/danieltoker1/Consciousness-is-supported-by-near-critical-slow-cortical-electrodynamics)
+
+
 
 ### External Links
 
